@@ -1,0 +1,242 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { PageHeader } from "@/components/shell";
+import { useApp } from "@/components/providers";
+import { Button, Card, Field, Pill, cx, inputCls, softSpring } from "@/components/ui";
+import { api, type Cycle, type DailyLog, type Prediction } from "@/lib/api";
+import { formatDate, localeNum, weekdayShort } from "@/lib/i18n";
+
+const PHASE_COLOR: Record<string, string> = {
+  period: "var(--color-glow-500)",
+  fertile: "var(--color-mint-500)",
+  ovulation: "var(--color-amber-glow)",
+  luteal: "var(--color-aurora-400)",
+  follicular: "transparent",
+};
+
+const SYMPTOMS = [
+  ["cramps", "دل‌درد", "Cramps"], ["headache", "سردرد", "Headache"], ["bloating", "نفخ", "Bloating"],
+  ["acne", "جوش", "Acne"], ["fatigue", "خستگی", "Fatigue"], ["energy", "پرانرژی", "Energetic"],
+  ["tender", "حساسیت سینه", "Tender breasts"], ["nausea", "تهوع", "Nausea"],
+];
+const MOODS = [["calm", "آرام", "Calm"], ["happy", "شاد", "Happy"], ["low", "بی‌حوصله", "Low"], ["anxious", "مضطرب", "Anxious"]];
+const FLOWS = [["light", "کم", "Light"], ["medium", "متوسط", "Medium"], ["heavy", "زیاد", "Heavy"]];
+
+const todayISO = () => new Date().toISOString().slice(0, 10);
+
+export default function CyclePage() {
+  const { t, locale } = useApp();
+  const [p, setP] = useState<Prediction | null>(null);
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [logs, setLogs] = useState<DailyLog[]>([]);
+  const [selected, setSelected] = useState(todayISO());
+  const [newStart, setNewStart] = useState(todayISO());
+  const [saved, setSaved] = useState(false);
+
+  const emptyLog: DailyLog = {
+    log_date: selected, temperature: null, opk_positive: null, intercourse: false,
+    mood: null, flow: null, symptoms: "", note: "",
+  };
+  const [form, setForm] = useState<DailyLog>(emptyLog);
+
+  const reload = async () => {
+    const [pred, cy, lg] = await Promise.all([api.insights(), api.cycles(), api.logs()]);
+    setP(pred); setCycles(cy); setLogs(lg);
+  };
+
+  useEffect(() => { reload().catch(() => {}); }, []);
+
+  useEffect(() => {
+    const found = logs.find((l) => l.log_date === selected);
+    setForm(found ? { ...found } : { ...emptyLog, log_date: selected });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected, logs]);
+
+  const byDay = useMemo(() => {
+    const map = new Map<string, string>();
+    p?.calendar.forEach((d) => map.set(d.day, d.phase));
+    return map;
+  }, [p]);
+
+  const grid = useMemo(() => {
+    const start = new Date();
+    start.setDate(start.getDate() - 20);
+    return Array.from({ length: 42 }, (_, i) => {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      return d;
+    });
+  }, []);
+
+  const saveLog = async () => {
+    await api.saveLog(form);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1800);
+    reload().catch(() => {});
+  };
+
+  const addCycle = async () => {
+    await api.addCycle({ period_start: newStart });
+    reload().catch(() => {});
+  };
+
+  const toggleSymptom = (key: string) => {
+    const list = form.symptoms ? form.symptoms.split(",").filter(Boolean) : [];
+    const next = list.includes(key) ? list.filter((s) => s !== key) : [...list, key];
+    setForm({ ...form, symptoms: next.join(",") });
+  };
+
+  return (
+    <div className="mx-auto max-w-6xl">
+      <PageHeader title={t("cycleTitle")} body={t("cycleBody")} />
+
+      <div className="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
+        <Card className="p-6">
+          <h2 className="mb-4 font-bold">{t("calendarTitle")}</h2>
+          <div className="mb-3 grid grid-cols-7 gap-1.5 text-center text-[10px] muted">
+            {grid.slice(0, 7).map((d) => (
+              <div key={d.toISOString()}>{weekdayShort(d, locale)}</div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1.5">
+            {grid.map((d, i) => {
+              const iso = d.toISOString().slice(0, 10);
+              const phase = byDay.get(iso) || "follicular";
+              const isToday = iso === todayISO();
+              const isSelected = iso === selected;
+              const hasLog = logs.some((l) => l.log_date === iso);
+              return (
+                <motion.button
+                  key={iso}
+                  onClick={() => setSelected(iso)}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ ...softSpring, delay: i * 0.008 }}
+                  className={cx(
+                    "pressable focusable relative aspect-square rounded-2xl border text-xs font-bold transition",
+                    isSelected && "ring-2 ring-[var(--color-aurora-500)]",
+                    isToday && "border-[var(--color-aurora-500)]",
+                  )}
+                  style={
+                    phase === "follicular"
+                      ? undefined
+                      : { background: `color-mix(in oklab, ${PHASE_COLOR[phase]} ${phase === "ovulation" ? 85 : 55}%, transparent)`, color: "#fff", borderColor: "transparent" }
+                  }
+                >
+                  {localeNum(d.getDate(), locale)}
+                  {hasLog && <span className="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-current" />}
+                </motion.button>
+              );
+            })}
+          </div>
+          <div className="mt-5 flex flex-wrap gap-4 text-[11px] muted">
+            {[["legendPeriod", "period"], ["legendFertile", "fertile"], ["legendOvulation", "ovulation"], ["legendLuteal", "luteal"]].map(([label, key]) => (
+              <span key={key} className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ background: PHASE_COLOR[key] }} />
+                {t(label as never)}
+              </span>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-bold">{t("logTitle")}</h2>
+            <span className="text-xs font-semibold muted">{formatDate(selected, locale)}</span>
+          </div>
+
+          <div className="space-y-5">
+            <Field label={t("temperature")} hint="°C">
+              <input
+                type="number" step="0.01" min="34" max="42" dir="ltr" className={inputCls}
+                value={form.temperature ?? ""} placeholder="36.60"
+                onChange={(e) => setForm({ ...form, temperature: e.target.value ? Number(e.target.value) : null })}
+              />
+            </Field>
+
+            <div>
+              <span className="mb-2 block text-sm font-medium muted">{t("flow")}</span>
+              <div className="flex flex-wrap gap-2">
+                {FLOWS.map(([key, fa, en]) => (
+                  <Pill key={key} active={form.flow === key} onClick={() => setForm({ ...form, flow: form.flow === key ? null : key })}>
+                    {locale === "fa" ? fa : en}
+                  </Pill>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="mb-2 block text-sm font-medium muted">{t("mood")}</span>
+              <div className="flex flex-wrap gap-2">
+                {MOODS.map(([key, fa, en]) => (
+                  <Pill key={key} active={form.mood === key} onClick={() => setForm({ ...form, mood: form.mood === key ? null : key })}>
+                    {locale === "fa" ? fa : en}
+                  </Pill>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <span className="mb-2 block text-sm font-medium muted">{t("symptoms")}</span>
+              <div className="flex flex-wrap gap-2">
+                {SYMPTOMS.map(([key, fa, en]) => (
+                  <Pill key={key} active={form.symptoms.split(",").includes(key)} onClick={() => toggleSymptom(key)}>
+                    {locale === "fa" ? fa : en}
+                  </Pill>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Pill active={!!form.opk_positive} onClick={() => setForm({ ...form, opk_positive: !form.opk_positive })}>
+                🧪 {t("opk")}
+              </Pill>
+              <Pill active={form.intercourse} onClick={() => setForm({ ...form, intercourse: !form.intercourse })}>
+                💞 {t("intercourse")}
+              </Pill>
+            </div>
+
+            <Field label={t("note")}>
+              <input className={inputCls} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} />
+            </Field>
+
+            <div className="flex items-center gap-3">
+              <Button onClick={saveLog}>{t("save")}</Button>
+              {saved && <span className="text-sm font-bold text-[var(--color-mint-500)]">{t("saved")}</span>}
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <Card className="mt-5 p-6">
+        <h2 className="mb-4 font-bold">{t("addPeriod")}</h2>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[12rem] flex-1">
+            <Field label={t("periodStart")}>
+              <input type="date" dir="ltr" className={inputCls} value={newStart} onChange={(e) => setNewStart(e.target.value)} />
+            </Field>
+          </div>
+          <Button onClick={addCycle}>{t("save")}</Button>
+        </div>
+
+        <div className="mt-6 space-y-2">
+          {cycles.length === 0 && <p className="text-sm muted">{t("noCycles")}</p>}
+          {[...cycles].reverse().map((c) => (
+            <div key={c.id} className="flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--color-glow-500)]" />
+              <span className="font-semibold">{formatDate(c.period_start, locale)}</span>
+              <button
+                onClick={() => api.deleteCycle(c.id).then(() => reload())}
+                className="focusable ms-auto text-xs font-bold text-[var(--color-glow-600)] hover:underline"
+              >
+                {t("delete")}
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}

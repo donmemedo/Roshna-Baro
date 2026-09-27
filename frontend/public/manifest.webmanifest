@@ -1,0 +1,20 @@
+{
+  "name": "روشنای باروری | Roshana",
+  "short_name": "Roshana",
+  "description": "پیش‌بینی باروری، راهنمای بارداری و صندوق همیاری درمان",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf7f8",
+  "theme_color": "#f8437f",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["health", "medical", "lifestyle"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
