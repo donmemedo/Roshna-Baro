@@ -6,7 +6,7 @@ API is scaled out (see docs/architecture.md).
 """
 import ipaddress
 import time
-from collections import deque
+from collections import OrderedDict, deque
 
 from fastapi import Request
 
@@ -59,8 +59,31 @@ def forget(key: str) -> None:
     _hits.pop(key, None)
 
 
+# Addresses that have already signed in to an account. They keep working while the account-wide failure cap
+# is tripped, so a stranger cannot lock the real owner out from their usual device by failing on purpose.
+_known: OrderedDict[str, float] = OrderedDict()
+_KNOWN_TTL = 30 * 24 * 3600.0
+_KNOWN_MAX = 50_000
+
+
+def remember(key: str) -> None:
+    _known[key] = time.monotonic() + _KNOWN_TTL
+    _known.move_to_end(key)
+    while len(_known) > _KNOWN_MAX:
+        _known.popitem(last=False)
+
+
+def known(key: str) -> bool:
+    expiry = _known.get(key)
+    if expiry is None or expiry < time.monotonic():
+        _known.pop(key, None)
+        return False
+    return True
+
+
 def reset_all() -> None:
     _hits.clear()
+    _known.clear()
 
 
 def client_ip(request: Request) -> str:

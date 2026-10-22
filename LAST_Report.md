@@ -39,7 +39,7 @@ Findings use the IDs from `docs/red-team-report.md`.
 |---|---|
 | Secrets and config | Weak or default `SECRET_KEY` stops startup; wildcard CORS stops startup; demo account only with `DEMO_MODE`; API docs off by default |
 | Authentication | PyJWT (HS256 pinned, required claims), numeric subject, `iat`, 7-day expiry, bcrypt in a thread pool, password 8 to 72 bytes, timing equalised for unknown users, e-mail case-insensitive |
-| Abuse limits | Login 8 per 5 min per address and e-mail, 40 per 5 min per address, 30 failures per hour per account from any address, 10 sign-ups per hour per address, IPv6 grouped by /64, cap on simultaneous hashes, write limit per user |
+| Abuse limits | Login 8 per 5 min per address and e-mail, 40 per 5 min per address, 30 failures per hour per account from any address (addresses that already signed in to that account are exempt, so strangers cannot lock the owner out), 10 sign-ups per hour per address, IPv6 grouped by /64, cap on simultaneous hashes, write limit per user |
 | Input | Every field bounded or an enum; dates in range; per-user caps (600 cycles, 20 000 logs); 64 KiB body limit checked while streaming; fund tiers only |
 | Data integrity | Partial log updates (a quick tap no longer erases temperature or notes), unique indexes for day, cycle and fund membership, duplicate-race handling |
 | Privacy | Export and permanent account deletion (password required) now exist; copy no longer claims end-to-end encryption; no IPs, query strings or bodies in logs; SQL errors hide bound values; pregnancy date moved out of the URL |
@@ -109,7 +109,7 @@ cd backend && APP_ENV=dev .venv/bin/python -m uvicorn app.main:app --port 8036
 cd frontend && NEXT_PUBLIC_API_URL=http://localhost:8036 npm run build && npx next start -p 3036
 
 # checks
-cd backend && .venv/bin/python -m pytest          # 73 tests
+cd backend && .venv/bin/python -m pytest          # 74 tests
 cd backend && python scripts/live_probe.py http://127.0.0.1:8036 http://localhost:3036
 cd frontend && node scripts/visual-check.mjs http://localhost:3036 http://localhost:8036 ./shots
 ```

@@ -50,7 +50,7 @@ Checked and **not** vulnerable: ownership check on `DELETE /cycles/{id}` (404, n
 | Risk | Why accepted | Next step |
 |---|---|---|
 | Tokens are not revocable before expiry | Stateless design; account deletion does invalidate them | Add a `token_version` claim when a password-change or "sign out all devices" feature is built |
-| Distributed credential stuffing | The limiter is per IP and per ip+email | Add a breached-password check at sign-up and a per-account failure counter |
+| Distributed credential stuffing and owner lock-out | Per-address, per-account (30 failures per hour) and /64 limits exist. Once a stranger trips the account cap, only addresses that never signed in are held back, so the owner on a known address is not locked out | Add a breached-password check at sign-up. An owner on a brand-new address can still be delayed for up to an hour during an attack |
 | No encryption at rest | SQLite file on a volume | Encrypt the volume and backups (LUKS, cloud disk encryption); consider SQLCipher |
 | Sign-up reveals that an e-mail exists | Better usability; throttled | Switch to e-mail verification when an e-mail service exists |
 | Rate-limit state is per process | Single replica by design | Redis when scaling out |

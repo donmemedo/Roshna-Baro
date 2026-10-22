@@ -68,7 +68,8 @@ async def login(
     # Across all addresses: spreading guesses over many IPs (or an IPv6 block) must not lift the ceiling.
     account_key = f"login-fail:{email}"
     retry = ratelimit.peek(account_key, settings.login_account_max_failures, 3600)
-    if retry:
+    known_key = f"{email}|{ip}"
+    if retry and not ratelimit.known(known_key):  # an address that already signed in is not locked out by strangers
         raise ApiError(429, "rate_limited", "Too many attempts. Try again later.", {"Retry-After": str(retry)})
 
     user = (await session.exec(select(User).where(User.email == email))).first()
@@ -79,6 +80,7 @@ async def login(
         ratelimit.hit(account_key, 10**9, 3600)  # record the failure (never blocks by itself)
         raise ApiError(401, "invalid_credentials", "Wrong email or password.", {"WWW-Authenticate": "Bearer"})
     ratelimit.forget(key)
+    ratelimit.remember(known_key)
     return TokenOut(access_token=create_access_token(user_id))
 
 

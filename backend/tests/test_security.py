@@ -256,6 +256,25 @@ async def test_r2_guessing_one_account_from_many_addresses_hits_the_account_limi
     assert codes[:3] == [401, 401, 401] and codes[3:] == [429, 429]
 
 
+async def test_r2b_strangers_cannot_lock_the_owner_out_from_a_known_address(client, monkeypatch):
+    from app.config import settings
+    from tests.conftest import client_from
+
+    monkeypatch.setattr(settings, "login_account_max_failures", 3)
+    await register(client)
+    async with client_from("192.0.2.50") as home:   # the owner signs in once from their usual address
+        assert (await home.post("/api/auth/login", data={"username": "a@example.com", "password": PASSWORD})).status_code == 200
+    for i in range(4):                               # a stranger fails from other addresses until the cap trips
+        async with client_from(f"198.51.100.{i + 20}") as other:
+            await other.post("/api/auth/login", data={"username": "a@example.com", "password": "wrong-password"})
+    async with client_from("198.51.100.99") as new_address:
+        blocked = await new_address.post("/api/auth/login", data={"username": "a@example.com", "password": PASSWORD})
+    assert blocked.status_code == 429                # unknown addresses are held back
+    async with client_from("192.0.2.50") as home:
+        again = await home.post("/api/auth/login", data={"username": "a@example.com", "password": PASSWORD})
+    assert again.status_code == 200                  # the owner's known address is not
+
+
 async def test_r5_deleting_the_account_needs_the_password(client):
     h, _ = await register(client)
     no_body = await client.delete("/api/auth/me", headers=h)
