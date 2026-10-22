@@ -1,0 +1,80 @@
+{
+ "baseline": {
+  "label": "baseline",
+  "health": {
+   "cpu_p50_ms": 1.18,
+   "wall_p50_ms": 15.81
+  },
+  "login_ok": {
+   "cpu_p50_ms": 429.41,
+   "wall_p50_ms": 5934.0
+  },
+  "me": {
+   "cpu_p50_ms": 5.49,
+   "wall_p50_ms": 93.51
+  },
+  "clinics": {
+   "cpu_p50_ms": 5.52,
+   "wall_p50_ms": 86.65
+  },
+  "articles": {
+   "cpu_p50_ms": 5.44,
+   "wall_p50_ms": 106.12
+  },
+  "insights_small": {
+   "cpu_p50_ms": 13.79,
+   "wall_p50_ms": 127.64
+  },
+  "insights_3y": {
+   "cpu_p50_ms": 54.06,
+   "wall_p50_ms": 899.6
+  },
+  "insights_20k_logs": {
+   "cpu_p50_ms": 965.36,
+   "wall_p50_ms": 7906.73
+  },
+  "logs_list_20k": {
+   "cpu_p50_ms": 1425.94,
+   "wall_p50_ms": 11830.68
+  }
+ },
+ "hardened": {
+  "label": "hardened",
+  "health": {
+   "cpu_p50_ms": 2.05,
+   "wall_p50_ms": 8.01
+  },
+  "login_ok": {
+   "cpu_p50_ms": 450.79,
+   "wall_p50_ms": 2432.39
+  },
+  "me": {
+   "cpu_p50_ms": 6.41,
+   "wall_p50_ms": 49.62
+  },
+  "clinics": {
+   "cpu_p50_ms": 6.37,
+   "wall_p50_ms": 40.26
+  },
+  "articles": {
+   "cpu_p50_ms": 5.88,
+   "wall_p50_ms": 52.81
+  },
+  "insights_small": {
+   "cpu_p50_ms": 16.0,
+   "wall_p50_ms": 166.1
+  },
+  "insights_3y": {
+   "cpu_p50_ms": 18.91,
+   "wall_p50_ms": 155.5
+  },
+  "insights_20k_logs": {
+   "cpu_p50_ms": 22.8,
+   "wall_p50_ms": 303.19
+  },
+  "logs_list_20k": {
+   "cpu_p50_ms": 23.01,
+   "wall_p50_ms": 285.2
+  }
+ }
+}

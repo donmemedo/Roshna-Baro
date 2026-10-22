@@ -1,10 +1,32 @@
+# dependencies and build output
 node_modules/
 .next/
-data/
+out/
 __pycache__/
-.venv/
-.env
 *.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
 
+# local state and secrets (never commit)
+.env
+.env.*
+!.env.example
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# IDE
 .idea
-docs
+
+# large source documents kept out of git; markdown docs ARE tracked
+docs/*.pdf
+
+# graphify cache (graph.json / GRAPH_REPORT.md are tracked)
+graphify-out/cache/
+graphify-out/*.html
+graphify-out/.graphify_*
+
+# build info
+*.tsbuildinfo

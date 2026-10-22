@@ -1,0 +1,12 @@
+line-length = 120
+target-version = "py312"
+extend-exclude = [".venv", "data"]
+
+[lint]
+select = ["E", "F", "I", "B", "UP", "S", "ASYNC"]
+ignore = ["E501", "B008", "S105", "S106"]  # B008: FastAPI Depends(); S105/6: test fixtures hold fake secrets
+
+[lint.per-file-ignores]
+"tests/*" = ["S101", "S311"]
+"scripts/*" = ["S101", "S108"]
+"app/seed_data.py" = ["E501"]

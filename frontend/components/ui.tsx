@@ -4,8 +4,16 @@ import { motion, type HTMLMotionProps } from "framer-motion";
 import Link from "next/link";
 import { forwardRef } from "react";
 
-export const spring = { type: "spring" as const, stiffness: 420, damping: 34, mass: 0.9 };
-export const softSpring = { type: "spring" as const, stiffness: 180, damping: 26 };
+// Apple's two-parameter springs: bounce 0 is critically damped (no overshoot), duration is the response.
+// Default for everything a user can touch; bounce is reserved for motion that follows a flick.
+export const spring = { type: "spring" as const, duration: 0.4, bounce: 0 };
+export const softSpring = { type: "spring" as const, duration: 0.5, bounce: 0 };
+export const sheetSpring = { type: "spring" as const, duration: 0.35, bounce: 0.15 };
+
+/** Where a flick would come to rest (UIScrollView deceleration), used to decide whether a drag dismisses. */
+export function project(velocity: number, deceleration = 0.998) {
+  return ((velocity / 1000) * deceleration) / (1 - deceleration);
+}
 
 export function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
@@ -126,6 +134,7 @@ export function Pill({
   return (
     <button
       {...rest}
+      aria-pressed={active}
       className={cx(
         "pressable focusable h-9 shrink-0 rounded-full border px-4 text-sm font-medium transition",
         active
@@ -169,4 +178,43 @@ export function SectionTitle({ eyebrow, title, body }: { eyebrow?: string; title
       {body && <p className="mt-3 text-base muted text-pretty">{body}</p>}
     </div>
   );
+}
+
+/** Placeholder that keeps the layout stable while data loads (shown instead of a bare spinner). */
+export function Skeleton({ className }: { className?: string }) {
+  return <div aria-hidden className={cx("skeleton relative overflow-hidden rounded-2xl bg-black/6 dark:bg-white/8", className)} />;
+}
+
+export function PageSkeleton({ label }: { label: string }) {
+  return (
+    <div role="status" aria-label={label} className="mx-auto max-w-6xl">
+      <Skeleton className="mb-3 mt-2 h-8 w-56" />
+      <Skeleton className="mb-6 h-4 w-72" />
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,420px)_1fr]">
+        <Skeleton className="h-96 rounded-4xl" />
+        <div className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-24 rounded-4xl" />)}
+          </div>
+          <Skeleton className="h-32 rounded-4xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ErrorState({ message, retryLabel, onRetry }: { message: string; retryLabel: string; onRetry?: () => void }) {
+  return (
+    <div role="alert" className="mx-auto mt-16 max-w-sm text-center">
+      <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-glow-500)]/12 text-[var(--color-glow-500)]">!</div>
+      <p className="text-sm muted">{message}</p>
+      {onRetry && <Button variant="soft" size="sm" className="mt-5" onClick={onRetry}>{retryLabel}</Button>}
+    </div>
+  );
+}
+
+/** Inline error line for forms; announced to screen readers. */
+export function FormError({ children }: { children: React.ReactNode }) {
+  if (!children) return null;
+  return <p role="alert" className="rounded-2xl bg-[var(--color-glow-500)]/10 px-4 py-3 text-sm text-[var(--color-glow-600)]">{children}</p>;
 }

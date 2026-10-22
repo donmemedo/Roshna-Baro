@@ -7,25 +7,26 @@ import { Brand, LangToggle, ThemeToggle } from "@/components/shell";
 import { Icon } from "@/components/icons";
 import { useApp } from "@/components/providers";
 import { Button, Card, SectionTitle, Stat, softSpring } from "@/components/ui";
-import { api } from "@/lib/api";
+import { api, type Community } from "@/lib/api";
 import { formatNum, localeNum } from "@/lib/i18n";
 
 const FAQ_FA = [
-  ["آیا داده‌های من محرمانه می‌ماند؟", "بله. داده‌های سلامت شما رمزنگاری می‌شوند و هیچ‌گاه بدون رضایت صریح شما با کسی به اشتراک گذاشته نمی‌شوند."],
-  ["پیش‌بینی چقدر دقیق است؟", "دقت به تعداد چرخه‌های ثبت‌شده بستگی دارد. با سه چرخه، پیش‌بینی پنجره باروری معمولاً به بالای ۹۰٪ اطمینان می‌رسد."],
+  ["آیا داده‌های من محرمانه می‌ماند؟", "بله. ارتباط شما با روشنا رمزنگاری می‌شود و داده‌های سلامت‌تان هیچ‌گاه بدون رضایت صریح شما با کسی به اشتراک گذاشته نمی‌شود. هر زمان می‌توانید از بخش تنظیمات نسخه داده‌ها را دریافت یا حساب را حذف کنید."],
+  ["پیش‌بینی چقدر دقیق است؟", "دقت به تعداد چرخه‌های ثبت‌شده بستگی دارد. هرچه چرخه و داده‌های بیشتری ثبت کنید، درصد اطمینان پیش‌بینی بالاتر می‌رود. این پیش‌بینی جایگزین نظر پزشک نیست."],
   ["اگر چرخه‌ام نامنظم باشد چه؟", "الگوریتم نوسان چرخه را می‌سنجد و در صورت نیاز، زمان مراجعه به متخصص را به شما یادآوری می‌کند."],
-  ["استفاده از آن رایگان است؟", "قابلیت‌های اصلی رایگان است. نسخه پرمیوم شامل تحلیل پیشرفته، گفت‌وگو با مشاور و یادآوری آزمایش‌هاست."],
+  ["استفاده از آن رایگان است؟", "قابلیت‌های اصلی رایگان است. قابلیت‌های پرمیوم هنوز در دسترس نیست و در آینده اضافه می‌شود."],
 ];
 const FAQ_EN = [
-  ["Is my data private?", "Yes. Health data is encrypted and never shared with anyone without your explicit consent."],
-  ["How accurate is the prediction?", "Accuracy grows with logged cycles. After three cycles, fertile-window confidence typically passes 90%."],
+  ["Is my data private?", "Yes. Your connection to Roshana is encrypted and your health data is never shared without your explicit consent. You can download your data or delete your account from Settings at any time."],
+  ["How accurate is the prediction?", "Accuracy grows with the cycles and data you log, and the confidence score shows it. A prediction never replaces a doctor's advice."],
   ["What if my cycle is irregular?", "The engine measures your variation and reminds you when a specialist visit is worth booking."],
-  ["Is it free?", "Core features are free. Premium adds advanced analysis, a counsellor chat and test reminders."],
+  ["Is it free?", "Core features are free. Premium features are not available yet."],
 ];
 
 export default function LandingPage() {
   const { t, locale, user } = useApp();
-  const [stats, setStats] = useState<{ users: number; cycles_logged: number; clinics: number; accuracy: number } | null>(null);
+  const [stats, setStats] = useState<Community | null>(null);
+  const [demo, setDemo] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -34,6 +35,7 @@ export default function LandingPage() {
 
   useEffect(() => {
     api.community().then(setStats).catch(() => {});
+    api.health().then((h) => setDemo(h.demo)).catch(() => {});
   }, []);
 
   const faq = locale === "fa" ? FAQ_FA : FAQ_EN;
@@ -95,17 +97,19 @@ export default function LandingPage() {
               <Button href="/login?mode=signup" size="lg">
                 {t("ctaStart")} <Icon.arrow className="h-5 w-5 rtl:rotate-180" />
               </Button>
-              <Button href="/login?demo=1" size="lg" variant="soft">
-                {t("ctaDemo")}
-              </Button>
+              {demo && (
+                <Button href="/login?demo=1" size="lg" variant="soft">
+                  {t("ctaDemo")}
+                </Button>
+              )}
             </motion.div>
 
-            {stats && (
-              <div className="mt-12 grid max-w-lg grid-cols-2 gap-6 sm:grid-cols-4">
+            {/* real numbers only, and only once there are enough to be meaningful */}
+            {stats && stats.users >= 100 && (
+              <div className="mt-12 grid max-w-md grid-cols-3 gap-6">
                 <Stat value={formatNum(stats.users, locale)} label={t("statUsers")} />
                 <Stat value={formatNum(stats.cycles_logged, locale)} label={t("statCycles")} accent="aurora" />
                 <Stat value={localeNum(stats.clinics, locale)} label={t("statClinics")} accent="mint" />
-                <Stat value={`${localeNum(stats.accuracy, locale)}%`} label={t("statAccuracy")} />
               </div>
             )}
           </div>
@@ -223,7 +227,7 @@ export default function LandingPage() {
           <p className="mx-auto mt-4 max-w-xl text-pretty muted">{t("heroBody")}</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Button href="/login?mode=signup" size="lg">{t("ctaStart")}</Button>
-            <Button href="/login?demo=1" size="lg" variant="soft">{t("ctaDemo")}</Button>
+            {demo && <Button href="/login?demo=1" size="lg" variant="soft">{t("ctaDemo")}</Button>}
           </div>
         </Card>
       </section>
@@ -249,7 +253,7 @@ function HeroPreview() {
     <motion.div
       initial={{ opacity: 0, scale: 0.92, y: 30 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 140, damping: 22, delay: 0.15 }}
+      transition={{ ...softSpring, delay: 0.15 }}
       className="relative"
     >
       <motion.div
@@ -259,7 +263,7 @@ function HeroPreview() {
       >
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <div className="text-xs muted">{t("todayIs")}</div>
+            <div className="text-xs muted">{t("todayIs")} · {t("sampleData")}</div>
             <div className="text-lg font-black">{t("phaseFertile")}</div>
           </div>
           <div className="rounded-full bg-[var(--color-mint-500)]/15 px-3 py-1 text-xs font-bold text-[var(--color-mint-500)]">

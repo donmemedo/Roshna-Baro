@@ -2,39 +2,60 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CycleRing } from "@/components/cycle-ring";
 import { Icon } from "@/components/icons";
-import { useApp } from "@/components/providers";
-import { Button, Card, Progress, softSpring } from "@/components/ui";
-import { api, type DailyLog, type Prediction } from "@/lib/api";
+import { useApp, useErrorText } from "@/components/providers";
+import { Button, Card, ErrorState, PageSkeleton, Progress, softSpring } from "@/components/ui";
+import { ApiError, api, type DailyLog } from "@/lib/api";
+import { todayISO } from "@/lib/date";
+import { useLoad } from "@/lib/hooks";
 import { formatDate, localeNum } from "@/lib/i18n";
 
 export default function DashboardPage() {
   const { t, locale, user } = useApp();
-  const [p, setP] = useState<Prediction | null>(null);
+  const errorText = useErrorText();
+  const { data: p, error, reload } = useLoad(() => api.insights(todayISO()));
   const [saved, setSaved] = useState("");
+  const [saveError, setSaveError] = useState("");
 
-  useEffect(() => {
-    api.insights().then(setP).catch(() => {});
-  }, []);
-
+  // Sends only what was tapped. The server merges it, so temperature, mood and notes
+  // already saved for today are never wiped by a quick-log tap.
   const quickLog = async (patch: Partial<DailyLog>) => {
-    const today = new Date().toISOString().slice(0, 10);
-    await api.saveLog({
-      log_date: today, temperature: null, opk_positive: null, intercourse: false,
-      mood: null, flow: null, symptoms: "", note: "", ...patch,
-    });
-    setSaved(t("saved"));
-    setTimeout(() => setSaved(""), 2000);
-    api.insights().then(setP).catch(() => {});
+    setSaveError("");
+    try {
+      await api.saveLog({ log_date: todayISO(), ...patch });
+      setSaved(t("saved"));
+      setTimeout(() => setSaved(""), 2000);
+      reload();
+    } catch (e) {
+      setSaveError(errorText(e));
+    }
+  };
+
+  // A period start changes the prediction only if it becomes a cycle; the flow flag alone is not read by the engine.
+  const logPeriod = async () => {
+    setSaveError("");
+    try {
+      try {
+        await api.addCycle({ period_start: todayISO() });
+      } catch (e) {
+        if (!(e instanceof ApiError && e.code === "duplicate")) throw e; // already logged today: fine
+      }
+      await api.saveLog({ log_date: todayISO(), flow: "medium" });
+      setSaved(t("saved"));
+      setTimeout(() => setSaved(""), 2000);
+      reload();
+    } catch (e) {
+      setSaveError(errorText(e));
+    }
   };
 
   if (!p) {
-    return (
-      <div className="grid h-[60vh] place-items-center">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--color-glow-500)] border-t-transparent" />
-      </div>
+    return error ? (
+      <ErrorState message={errorText(error)} retryLabel={t("retry")} onRetry={reload} />
+    ) : (
+      <PageSkeleton label={t("loading")} />
     );
   }
 
@@ -79,6 +100,7 @@ export default function DashboardPage() {
               <Progress value={p.regularity_score} tone="mint" />
             </div>
           </div>
+          <p className="mt-5 text-[11px] leading-relaxed muted">{t("disclaimer")}</p>
         </Card>
 
         <div className="space-y-5">
@@ -99,14 +121,15 @@ export default function DashboardPage() {
           <Card className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-bold">{t("quickLog")}</h2>
-              {saved && <span className="text-xs font-bold text-[var(--color-mint-500)]">{saved}</span>}
+              <span role="status" className="text-xs font-bold text-[var(--color-mint-500)]">{saved}</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="soft" size="sm" onClick={() => quickLog({ flow: "medium" })}>🩸 {t("legendPeriod")}</Button>
+              <Button variant="soft" size="sm" onClick={logPeriod}>🩸 {t("legendPeriod")}</Button>
               <Button variant="soft" size="sm" onClick={() => quickLog({ intercourse: true })}>💞 {t("intercourse")}</Button>
               <Button variant="soft" size="sm" onClick={() => quickLog({ opk_positive: true })}>🧪 {t("opk")}</Button>
               <Button variant="soft" size="sm" href="/cycle">➕ {t("logToday")}</Button>
             </div>
+            {saveError && <p role="alert" className="mt-3 text-sm text-[var(--color-glow-600)]">{t("saveFailed")}: {saveError}</p>}
           </Card>
 
           {p.referral_recommended && (
@@ -118,6 +141,7 @@ export default function DashboardPage() {
                 <div className="min-w-[14rem] flex-1">
                   <h3 className="font-bold">{t("referralTitle")}</h3>
                   <p className="mt-1 text-sm muted">{t("referralBody")}</p>
+                  <p className="mt-1 text-xs muted">{t("referralDisclosure")}</p>
                 </div>
                 <Button href="/clinics" size="sm">{t("seeClinics")}</Button>
               </div>
@@ -142,7 +166,7 @@ export default function DashboardPage() {
           })}
         </div>
         <div className="mt-5">
-          <Link href="/insights" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--color-glow-500)]">
+          <Link href="/insights" className="focusable inline-flex items-center gap-2 text-sm font-bold text-[var(--color-glow-500)]">
             {t("navInsights")} <Icon.arrow className="h-4 w-4 rtl:rotate-180" />
           </Link>
         </div>
