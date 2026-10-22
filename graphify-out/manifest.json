@@ -18,9 +18,9 @@
     "semantic_hash": ""
   },
   "backend/app/config.py": {
-    "mtime": 1792622996.6093996,
-    "seen": 1792638210.3757222,
-    "ast_hash": "33c93cc2162a914fae098d4fd0106c0b",
+    "mtime": 1792638484.8448102,
+    "seen": 1792647468.4468565,
+    "ast_hash": "0c0a29d78164e29efdfd63038fe5404d",
     "semantic_hash": ""
   },
   "backend/app/db.py": {
@@ -72,9 +72,9 @@
     "semantic_hash": ""
   },
   "backend/app/ratelimit.py": {
-    "mtime": 1792623063.3248107,
-    "seen": 1792638210.3757598,
-    "ast_hash": "c6a2e968b4a722c3df5d8cc959d07a12",
+    "mtime": 1792638513.4224603,
+    "seen": 1792647468.4468784,
+    "ast_hash": "d1a6d88dc5ba96189322cc6fa608b74c",
     "semantic_hash": ""
   },
   "backend/app/routers/__init__.py": {
@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "backend/app/routers/auth.py": {
-    "mtime": 1792623247.5153453,
-    "seen": 1792638210.375767,
-    "ast_hash": "e929a4985e01b3d1b92c0c2cd9682c8d",
+    "mtime": 1792638484.8423858,
+    "seen": 1792647468.446883,
+    "ast_hash": "341dc41c1f8e6a0ec400a20d64a7b1e0",
     "semantic_hash": ""
   },
   "backend/app/routers/care.py": {
@@ -156,9 +156,9 @@
     "semantic_hash": ""
   },
   "backend/tests/test_security.py": {
-    "mtime": 1792623140.8231094,
-    "seen": 1792638210.3758168,
-    "ast_hash": "3b7d783b229fe2f9bca64d484dac8875",
+    "mtime": 1792638458.1309705,
+    "seen": 1792647468.44691,
+    "ast_hash": "96c9e11047acfe0f8f083208df5500ce",
     "semantic_hash": ""
   },
   "docs/evidence/bench-compare.json": {
@@ -402,9 +402,9 @@
     "semantic_hash": ""
   },
   "LAST_Report.md": {
-    "mtime": 1792623956.1711614,
-    "seen": 1792638210.3759856,
-    "ast_hash": "276dc2808f9612c7505622d845607a01",
+    "mtime": 1792638513.424052,
+    "seen": 1792647468.447028,
+    "ast_hash": "c1ef2c961f9c434f859f7ce31691c40f",
     "semantic_hash": ""
   },
   "README.md": {
@@ -462,9 +462,9 @@
     "semantic_hash": ""
   },
   "docs/red-team-report.md": {
-    "mtime": 1792622777.377649,
-    "seen": 1792638210.3760226,
-    "ast_hash": "ff198b11029a3e9f6ba8e76e52ccb765",
+    "mtime": 1792638513.4230425,
+    "seen": 1792647468.447063,
+    "ast_hash": "3c59765c69f26e6cdd5101afd3564b1b",
     "semantic_hash": ""
   },
   "docs/threat-model.md": {
@@ -567,6 +567,48 @@
     "mtime": 1789631744.2578542,
     "seen": 1792638210.3760934,
     "ast_hash": "2e07664cf6932d67e862f79cf4495a48",
+    "semantic_hash": ""
+  },
+  "docs/README.md": {
+    "mtime": 1792638276.9361346,
+    "seen": 1792647468.4470417,
+    "ast_hash": "18259caf8d18d7a469be59a07f2f4448",
+    "semantic_hash": ""
+  },
+  "docs/deployment.md": {
+    "mtime": 1792638276.9231367,
+    "seen": 1792647468.447046,
+    "ast_hash": "59c54868190288d4ca26f32179f0a163",
+    "semantic_hash": ""
+  },
+  "docs/devsecops.md": {
+    "mtime": 1792638276.9191372,
+    "seen": 1792647468.4470482,
+    "ast_hash": "145e5bbd1da9fff976f962c62dab33a3",
+    "semantic_hash": ""
+  },
+  "docs/independent-reviews.md": {
+    "mtime": 1792638513.42278,
+    "seen": 1792647468.4470577,
+    "ast_hash": "c505b7aa2953c5372f58fae9d8f57931",
+    "semantic_hash": ""
+  },
+  "docs/performance-report.md": {
+    "mtime": 1792638276.895141,
+    "seen": 1792647468.4470592,
+    "ast_hash": "da361d93c839c6263e50a96f09eec5f8",
+    "semantic_hash": ""
+  },
+  "docs/qa-plan.md": {
+    "mtime": 1792638513.4232757,
+    "seen": 1792647468.447061,
+    "ast_hash": "dfe6494d59721b7a42ef41f5bfa50b0a",
+    "semantic_hash": ""
+  },
+  "docs/ux-report.md": {
+    "mtime": 1792638276.9041395,
+    "seen": 1792647468.447067,
+    "ast_hash": "402bc437f23c027c6157482eb8150f07",
     "semantic_hash": ""
   }
 }
