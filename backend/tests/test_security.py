@@ -256,6 +256,57 @@ async def test_r2_guessing_one_account_from_many_addresses_hits_the_account_limi
     assert codes[:3] == [401, 401, 401] and codes[3:] == [429, 429]
 
 
+async def test_r2c_a_concurrent_burst_cannot_exceed_the_account_cap(client, monkeypatch):
+    import threading
+
+    import app.routers.auth as auth_router
+    from app.config import settings
+    from tests.conftest import client_from
+
+    monkeypatch.setattr(settings, "login_account_max_failures", 3)
+    await register(client)
+    real, lock, checked = auth_router.verify_password, threading.Lock(), []
+
+    def counting(raw, hashed):
+        with lock:
+            checked.append(1)
+        return real(raw, hashed)
+
+    monkeypatch.setattr(auth_router, "verify_password", counting)
+
+    async def guess(i):
+        async with client_from(f"198.51.100.{i + 100}") as c:
+            return (await c.post("/api/auth/login", data={"username": "a@example.com", "password": "wrong-password"})).status_code
+
+    codes = await asyncio.gather(*[guess(i) for i in range(12)])
+    assert len(checked) <= 3, f"{len(checked)} guesses reached the password check; the cap is 3"
+    assert codes.count(429) >= 9
+
+
+async def test_r2d_successful_logins_do_not_use_up_the_budget(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "login_account_max_failures", 3)
+    await register(client)
+    for _ in range(6):   # more successes than the cap: each one is refunded
+        r = await client.post("/api/auth/login", data={"username": "a@example.com", "password": PASSWORD})
+        assert r.status_code == 200
+
+
+async def test_r2e_known_addresses_are_kept_per_account_not_in_one_global_list():
+    from app import ratelimit
+
+    ratelimit.reset_all()
+    ratelimit.remember("owner@example.com", "192.0.2.1")
+    for i in range(60_000):   # someone signing in to many other accounts must not push the owner out
+        ratelimit.remember(f"bot{i}@example.com", "198.51.100.7")
+    assert ratelimit.known("owner@example.com", "192.0.2.1")
+    for i in range(30):       # and one account only remembers a few addresses
+        ratelimit.remember("one@example.com", f"203.0.113.{i}")
+    assert sum(ratelimit.known("one@example.com", f"203.0.113.{i}") for i in range(30)) == 10
+    ratelimit.reset_all()
+
+
 async def test_r2b_strangers_cannot_lock_the_owner_out_from_a_known_address(client, monkeypatch):
     from app.config import settings
     from tests.conftest import client_from

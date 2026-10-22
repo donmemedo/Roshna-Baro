@@ -4,10 +4,10 @@
 
 | Layer | Where | Count |
 |---|---|---|
-| Security regression (red team as tests) | `backend/tests/test_security.py` | 40 test functions |
+| Security regression (red team as tests) | `backend/tests/test_security.py` | 43 test functions |
 | API behaviour | `backend/tests/test_api.py` | 18 test functions |
 | Fertility engine (pure functions) | `backend/tests/test_prediction.py` | 8 test functions |
-| **Total collected by pytest** | | **74 cases** (parametrised tests expand) |
+| **Total collected by pytest** | | **77 cases** (parametrised tests expand) |
 | Live black-box probe of a running stack | `backend/scripts/live_probe.py` | 41 checks |
 | Real-browser sweep with screenshots | `frontend/scripts/visual-check.mjs` | 43 pages |
 | Static checks | Ruff, Bandit, `tsc`, `pip-audit`, `npm audit` | in CI |

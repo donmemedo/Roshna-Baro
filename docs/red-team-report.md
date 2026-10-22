@@ -53,6 +53,7 @@ Checked and **not** vulnerable: ownership check on `DELETE /cycles/{id}` (404, n
 | Distributed credential stuffing and owner lock-out | Per-address, per-account (30 failures per hour) and /64 limits exist. Once a stranger trips the account cap, only addresses that never signed in are held back, so the owner on a known address is not locked out | Add a breached-password check at sign-up. An owner on a brand-new address can still be delayed for up to an hour during an attack |
 | No encryption at rest | SQLite file on a volume | Encrypt the volume and backups (LUKS, cloud disk encryption); consider SQLCipher |
 | Sign-up reveals that an e-mail exists | Better usability; throttled | Switch to e-mail verification when an e-mail service exists |
+| `FORWARDED_ALLOW_IPS=*` while the port is public | Lets a client spoof the address header and defeat every per-address limit and the known-address exemption | Set it only to the proxy's exact address (documented in `deployment.md`) |
 | Rate-limit state is per process | Single replica by design | Redis when scaling out |
 | Container images not built or scanned on this host | Docker daemon not running here | CI builds, scans (Trivy) and boots them on every PR |
 

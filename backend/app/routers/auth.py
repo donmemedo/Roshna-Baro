@@ -66,21 +66,24 @@ async def login(
     key = f"login:{ip}:{email}"
     ratelimit.enforce(key, settings.login_max_attempts, window)
     # Across all addresses: spreading guesses over many IPs (or an IPv6 block) must not lift the ceiling.
-    account_key = f"login-fail:{email}"
-    retry = ratelimit.peek(account_key, settings.login_account_max_failures, 3600)
-    known_key = f"{email}|{ip}"
-    if retry and not ratelimit.known(known_key):  # an address that already signed in is not locked out by strangers
-        raise ApiError(429, "rate_limited", "Too many attempts. Try again later.", {"Retry-After": str(retry)})
+    # The slot is reserved here, before any await, so a burst of concurrent guesses cannot all slip past a
+    # check that only counted failures after the fact. A successful login refunds its slot below.
+    account_key = f"login-acct:{email}"
+    over = ratelimit.hit(account_key, settings.login_account_max_failures, 3600)
+    reserved = not over
+    if over and not ratelimit.known(email, ip):  # an address that already signed in is not locked out by strangers
+        raise ApiError(429, "rate_limited", "Too many attempts. Try again later.", {"Retry-After": str(over)})
 
     user = (await session.exec(select(User).where(User.email == email))).first()
     user_id, stored_hash = (user.id, user.hashed_password) if user else (None, DUMMY_HASH)
     await session.rollback()  # hand the pooled connection back before the slow hash
     ok = await _in_pool(verify_password, form.password, stored_hash)
     if user_id is None or not ok:
-        ratelimit.hit(account_key, 10**9, 3600)  # record the failure (never blocks by itself)
         raise ApiError(401, "invalid_credentials", "Wrong email or password.", {"WWW-Authenticate": "Bearer"})
+    if reserved:
+        ratelimit.undo(account_key)
     ratelimit.forget(key)
-    ratelimit.remember(known_key)
+    ratelimit.remember(email, ip)
     return TokenOut(access_token=create_access_token(user_id))
 
 

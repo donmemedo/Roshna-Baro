@@ -38,17 +38,6 @@ def hit(key: str, limit: int, window: float) -> int:
     return 0
 
 
-def peek(key: str, limit: int, window: float) -> int:
-    """Like hit() but records nothing: 0 if under the limit, else seconds to wait."""
-    now = time.monotonic()
-    q = _hits.get(key)
-    if not q:
-        return 0
-    while q and now - q[0] > window:
-        q.popleft()
-    return max(1, int(window - (now - q[0])) + 1) if len(q) >= limit else 0
-
-
 def enforce(key: str, limit: int, window: float) -> None:
     retry = hit(key, limit, window)
     if retry:
@@ -59,26 +48,36 @@ def forget(key: str) -> None:
     _hits.pop(key, None)
 
 
-# Addresses that have already signed in to an account. They keep working while the account-wide failure cap
-# is tripped, so a stranger cannot lock the real owner out from their usual device by failing on purpose.
-_known: OrderedDict[str, float] = OrderedDict()
+def undo(key: str) -> None:
+    """Refund the most recent reservation on `key` (a login that succeeded does not use up the budget)."""
+    q = _hits.get(key)
+    if q:
+        q.pop()
+
+
+# Addresses that have already signed in to an account. They keep working while the account-wide cap is
+# tripped, so a stranger cannot lock the real owner out from their usual device by failing on purpose.
+# Kept per account (a few addresses each) so signing in to unrelated accounts cannot push an owner out.
+_known: dict[str, OrderedDict[str, float]] = {}
 _KNOWN_TTL = 30 * 24 * 3600.0
-_KNOWN_MAX = 50_000
+_KNOWN_PER_ACCOUNT = 10
 
 
-def remember(key: str) -> None:
-    _known[key] = time.monotonic() + _KNOWN_TTL
-    _known.move_to_end(key)
-    while len(_known) > _KNOWN_MAX:
-        _known.popitem(last=False)
+def remember(account: str, ip: str) -> None:
+    now = time.monotonic()
+    addrs = _known.setdefault(account, OrderedDict())
+    addrs[ip] = now + _KNOWN_TTL
+    addrs.move_to_end(ip)
+    while len(addrs) > _KNOWN_PER_ACCOUNT:
+        addrs.popitem(last=False)
+    if len(_known) > 100_000:  # drop accounts whose addresses have all expired
+        for key in [k for k, v in _known.items() if all(exp < now for exp in v.values())]:
+            del _known[key]
 
 
-def known(key: str) -> bool:
-    expiry = _known.get(key)
-    if expiry is None or expiry < time.monotonic():
-        _known.pop(key, None)
-        return False
-    return True
+def known(account: str, ip: str) -> bool:
+    expiry = _known.get(account, {}).get(ip)
+    return expiry is not None and expiry >= time.monotonic()
 
 
 def reset_all() -> None:

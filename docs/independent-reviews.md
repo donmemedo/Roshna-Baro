@@ -14,6 +14,7 @@ Three reviewers read the hardened code read-only (red/blue backend review, tech 
 | R-6 | Medium | SQL error text carried bound values into logs | **Fixed.** `hide_parameters=True`. Test `test_r6_*` |
 | R-7 | Low-Med | A pooled DB connection was held during the slow hash | **Fixed.** Connection released before hashing |
 | R-12 | Medium | Commit security review: the per-account failure cap could be used to lock the owner out | **Fixed.** Addresses that already signed in to the account are exempt from the account cap. Test `test_r2b_*`. Residual: an owner on a new address can be delayed up to an hour |
+| R-13 | High | Second commit review: the per-account cap was checked before the password and recorded only after it, so a burst of concurrent guesses all passed the check; the known-address list was one global list an attacker could flood to push owners out | **Fixed.** The slot is reserved atomically before any await and refunded on success; known addresses are kept per account (10 each). Tests `test_r2c_*`, `test_r2d_*`, `test_r2e_*` (the first proved the bypass: 12 of 12 guesses got through a cap of 3) |
 | R-8 | Low-Med | Sign-up reveals that an e-mail exists | **Accepted**, throttled per /64. Needs e-mail verification |
 | R-9 | Low | Duplicate cycles possible under concurrency | **Fixed.** Unique index, 409 on conflict |
 | R-10 | Low | `birth_year` could not be cleared; pregnancy date in the URL | **Fixed.** Partial update with explicit nulls; timeline is now POST |

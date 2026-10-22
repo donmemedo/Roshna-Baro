@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     login_max_attempts: int = 8          # per (ip, email) per window
     login_ip_max_attempts: int = 40      # per ip per window
     login_window_seconds: int = 300
-    login_account_max_failures: int = 30   # failed attempts per account per hour, from any address
+    login_account_max_failures: int = 30   # attempts per account per hour from any address (successes are refunded)
     bcrypt_concurrency: int = Field(4, ge=1, le=32)  # simultaneous password hashes (CPU bound)
     register_max_per_hour: int = 10      # per ip
     write_max_per_minute: int = 90       # per user
