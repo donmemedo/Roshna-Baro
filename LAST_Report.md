@@ -13,13 +13,13 @@ Audit the project with red team and blue team tactics, penetration test it, trea
 |---|---|
 | Backend audit and fixes | **Done.** 33 findings fixed or mitigated, each with a regression test |
 | Penetration test | **Done locally.** 41 of 41 live checks pass; baseline failed 29 of 36 tests |
-| Independent reviews (red/blue, tech lead, QA, PO, DevSecOps) | **Done.** Confirmed findings fixed, the rest listed in section 7 |
+| Independent reviews (red/blue, tech lead, QA, PO, DevSecOps) | **Done.** Confirmed findings fixed; open items in `docs/independent-reviews.md` and section 7. A post-push security review also flagged an owner lock-out risk in the per-account limit, now fixed |
 | Performance | **Done and measured** (section 5) |
 | UI/UX with apple-design | **Done** (section 6). Jalali date picker not built |
-| Production build and run | **Done.** Backend and frontend ran locally; screenshot run still in progress when the usage limit hit |
+| Production build and run | **Done.** Backend and frontend ran locally; browser run: 43 pages, 0 errors, screenshots in `docs/screenshots/` |
 | Docker images | **Not built.** The Docker daemon is not running on this machine. Compose file validates with `docker compose config` |
-| graphify knowledge graph | **Not run** (usage limit) |
-| Remaining docs (performance, UX, QA plan, DevSecOps write-ups) | **Not written** (usage limit). Their evidence exists in `docs/evidence/`; section 5 and 6 here hold the numbers |
+| graphify knowledge graph | **Done** (AST-only update). `graphify-out/graph.json` and `GRAPH_REPORT.md` are committed |
+| Documentation | **Done.** `docs/README.md` indexes architecture, threat model, red team report, independent reviews, performance, UX, QA plan, DevSecOps and deployment |
 | APK / IPA / PWA packaging | Not started; you said web app first. The PWA service worker is already in place |
 
 ## 3. Timeline of the work
@@ -93,7 +93,7 @@ Raw numbers: `docs/evidence/bench-compare.json`, `docs/evidence/ratelimit-bench.
 ## 8. Safeguards, limits and memory
 
 - Three of my responses were withheld by a safety classifier earlier in the session. I did not repeat the withheld content. I kept all testing local (in-process and localhost only) and expressed findings as regression tests. Recon tooling from the red-team skills (subdomain and host discovery, scanners aimed at networks) does not apply to a localhost app and was not run.
-- Several usage limits interrupted the work. This is why section 2 lists items not done.
+- Several usage limits interrupted the work; each time it resumed from the committed state.
 - Model: I stayed on the model the session gave me and did not switch.
 - Memory: the project memory folder was empty. The only carried state was `SESSION_HANDOFF.md`, kept at `docs/history/SESSION_HANDOFF.md`.
 - A safety check blocked one command that removed a file through a shell wrapper. I did not work around it and did not need the removal.
