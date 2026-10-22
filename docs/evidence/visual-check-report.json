@@ -1,0 +1,303 @@
+[
+ {
+  "label": "phone-light-fa-landing",
+  "path": "/",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-login",
+  "path": "/login",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-dashboard",
+  "path": "/dashboard",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-cycle",
+  "path": "/cycle",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-insights",
+  "path": "/insights",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-pregnancy",
+  "path": "/pregnancy",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-clinics",
+  "path": "/clinics",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-fund",
+  "path": "/fund",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-learn",
+  "path": "/learn",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-settings",
+  "path": "/settings",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-light-fa-more-sheet",
+  "path": "/dashboard",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-landing",
+  "path": "/",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-login",
+  "path": "/login",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-dashboard",
+  "path": "/dashboard",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-cycle",
+  "path": "/cycle",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-insights",
+  "path": "/insights",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-pregnancy",
+  "path": "/pregnancy",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-clinics",
+  "path": "/clinics",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-fund",
+  "path": "/fund",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-learn",
+  "path": "/learn",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-settings",
+  "path": "/settings",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-en-more-sheet",
+  "path": "/dashboard",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-landing",
+  "path": "/",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-login",
+  "path": "/login",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-dashboard",
+  "path": "/dashboard",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-cycle",
+  "path": "/cycle",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-insights",
+  "path": "/insights",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-pregnancy",
+  "path": "/pregnancy",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-clinics",
+  "path": "/clinics",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-fund",
+  "path": "/fund",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-learn",
+  "path": "/learn",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-light-fa-settings",
+  "path": "/settings",
+  "dir": "rtl",
+  "dark": false,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-landing",
+  "path": "/",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-login",
+  "path": "/login",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-dashboard",
+  "path": "/dashboard",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-cycle",
+  "path": "/cycle",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-insights",
+  "path": "/insights",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-pregnancy",
+  "path": "/pregnancy",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-clinics",
+  "path": "/clinics",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-fund",
+  "path": "/fund",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-learn",
+  "path": "/learn",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "desktop-dark-en-settings",
+  "path": "/settings",
+  "dir": "ltr",
+  "dark": true,
+  "problems": []
+ },
+ {
+  "label": "phone-dark-fa-dashboard-a11y-prefs",
+  "path": "/dashboard",
+  "dir": "rtl",
+  "dark": true,
+  "problems": []
+ }
+]
