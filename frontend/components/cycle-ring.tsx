@@ -24,13 +24,13 @@ const dayDiff = (a: string, b: string) =>
   Math.round((new Date(a + "T00:00:00").getTime() - new Date(b + "T00:00:00").getTime()) / 86400000);
 
 export function CycleRing({ p }: { p: Prediction }) {
-  const { t, locale } = useApp();
+  const { t, locale, user } = useApp();
   const len = p.avg_cycle_length;
   const step = 360 / len;
   const cycleStart = p.next_period ? dayDiff(p.next_period, p.today) - len : -(p.cycle_day ?? 1) + 1;
 
   const dayToAngle = (offsetFromToday: number) => (offsetFromToday - cycleStart) * step;
-  const periodLen = 5;
+  const periodLen = user?.avg_period_length ?? 5;
 
   const segments = [
     { key: "period", from: 0, to: periodLen * step, color: "var(--color-glow-500)" },

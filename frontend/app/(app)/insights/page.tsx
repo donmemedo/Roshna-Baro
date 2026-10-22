@@ -1,24 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { PageHeader } from "@/components/shell";
-import { useApp } from "@/components/providers";
-import { Card, Progress, softSpring } from "@/components/ui";
-import { api, type Cycle, type DailyLog, type Prediction } from "@/lib/api";
+import { useApp, useErrorText } from "@/components/providers";
+import { Card, ErrorState, Progress, Skeleton, softSpring } from "@/components/ui";
+import { api, type DailyLog } from "@/lib/api";
+import { todayISO } from "@/lib/date";
+import { useLoad } from "@/lib/hooks";
 import { formatDate, localeNum } from "@/lib/i18n";
 
 export default function InsightsPage() {
   const { t, locale } = useApp();
-  const [p, setP] = useState<Prediction | null>(null);
-  const [cycles, setCycles] = useState<Cycle[]>([]);
-  const [logs, setLogs] = useState<DailyLog[]>([]);
-
-  useEffect(() => {
-    Promise.all([api.insights(), api.cycles(), api.logs()])
-      .then(([pred, cy, lg]) => { setP(pred); setCycles(cy); setLogs(lg); })
-      .catch(() => {});
-  }, []);
+  const errorText = useErrorText();
+  const { data, error, reload } = useLoad(async () => {
+    const today = todayISO();
+    const [pred, cy, lg] = await Promise.all([api.insights(today), api.cycles(), api.logs(today)]);
+    return { pred, cy, lg };
+  });
+  const p = data?.pred ?? null;
+  const cycles = useMemo(() => data?.cy ?? [], [data]);
+  const logs = useMemo(() => data?.lg ?? [], [data]);
 
   const lengths = useMemo(() => {
     const starts = cycles.map((c) => c.period_start).sort();
@@ -32,9 +34,13 @@ export default function InsightsPage() {
   const temps = useMemo(() => logs.filter((l) => l.temperature).slice(-21), [logs]);
 
   if (!p) {
-    return (
-      <div className="grid h-[60vh] place-items-center">
-        <div className="h-9 w-9 animate-spin rounded-full border-2 border-[var(--color-glow-500)] border-t-transparent" />
+    return error ? (
+      <ErrorState message={errorText(error)} retryLabel={t("retry")} onRetry={reload} />
+    ) : (
+      <div role="status" aria-label={t("loading")} className="mx-auto max-w-6xl">
+        <Skeleton className="mb-6 mt-2 h-8 w-48" />
+        <div className="grid gap-5 lg:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-4xl" />)}</div>
+        <Skeleton className="mt-5 h-64 rounded-4xl" />
       </div>
     );
   }
@@ -65,7 +71,7 @@ export default function InsightsPage() {
       <Card className="mt-5 p-6">
         <h2 className="mb-1 font-bold">{locale === "fa" ? "احتمال بارداری در ۲۱ روز آینده" : "Conception odds — next 21 days"}</h2>
         <p className="mb-6 text-xs muted">{locale === "fa" ? "ارتفاع هر ستون، شانس نسبی بارداری در آن روز است." : "Each bar is the relative chance of conception on that day."}</p>
-        <div className="flex h-44 items-end gap-1.5">
+        <div role="img" aria-label={locale === "fa" ? "نمودار احتمال بارداری در ۲۱ روز آینده" : "Conception odds for the next 21 days"} className="flex h-44 items-end gap-1.5">
           {upcoming.map((d, i) => {
             const h = (d.conception_chance / maxChance) * 100;
             const color =
@@ -154,7 +160,7 @@ function TempChart({ temps }: { temps: DailyLog[] }) {
     return `${x},${y}`;
   });
   return (
-    <svg viewBox="0 0 300 130" className="h-40 w-full overflow-visible">
+    <svg role="img" aria-label="Basal body temperature trend" viewBox="0 0 300 130" className="h-40 w-full overflow-visible">
       <defs>
         <linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="var(--color-aurora-500)" stopOpacity="0.35" />

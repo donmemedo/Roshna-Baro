@@ -16,7 +16,7 @@ FERTILITY_CURVE = {-5: 0.10, -4: 0.16, -3: 0.14, -2: 0.27, -1: 0.31, 0: 0.33, 1:
 
 
 def _cycle_lengths(starts: list[date]) -> list[int]:
-    return [(b - a).days for a, b in zip(starts, starts[1:]) if 15 <= (b - a).days <= 60]
+    return [(b - a).days for a, b in zip(starts, starts[1:], strict=False) if 15 <= (b - a).days <= 60]
 
 
 def _regularity(lengths: list[int]) -> int:
@@ -86,6 +86,10 @@ def build_prediction(user: User, cycles: list[Cycle], logs: list[DailyLog], toda
     # ---- day by day calendar: 14 days back, 45 days forward ----
     calendar: list[DayForecast] = []
     period_len = user.avg_period_length
+    period_days: set[date] = set()
+    for c in cycles:
+        end = min(c.period_end or c.period_start + timedelta(days=period_len - 1), c.period_start + timedelta(days=60))
+        period_days.update(c.period_start + timedelta(days=i) for i in range((end - c.period_start).days + 1))
     for offset in range(-14, 46):
         day = today + timedelta(days=offset)
         chance = 0.0
@@ -99,7 +103,7 @@ def build_prediction(user: User, cycles: list[Cycle], logs: list[DailyLog], toda
                 phase = "fertile"
             elif delta > 1:
                 phase = "luteal"
-        in_period = any(c.period_start <= day <= (c.period_end or c.period_start + timedelta(days=period_len - 1)) for c in cycles)
+        in_period = day in period_days
         predicted_period = bool(next_period and next_period <= day < next_period + timedelta(days=period_len))
         if in_period or predicted_period:
             phase, chance = "period", 0.0
@@ -112,7 +116,7 @@ def build_prediction(user: User, cycles: list[Cycle], logs: list[DailyLog], toda
     days_to_fertile = (fertile_start - today).days if fertile_start and fertile_start > today else None
 
     insights = _insights(user, lengths, regularity, avg_len, today_phase, days_to_fertile, source, logs)
-    referral = _referral(user, lengths, regularity, avg_len, cycles)
+    referral = _referral(user, lengths, regularity, avg_len, cycles, today)
 
     return PredictionOut(
         today=today,
@@ -133,8 +137,8 @@ def build_prediction(user: User, cycles: list[Cycle], logs: list[DailyLog], toda
     )
 
 
-def _referral(user: User, lengths: list[int], regularity: int, avg_len: int, cycles: list[Cycle]) -> bool:
-    age = date.today().year - user.birth_year if user.birth_year else None
+def _referral(user: User, lengths: list[int], regularity: int, avg_len: int, cycles: list[Cycle], today: date) -> bool:
+    age = today.year - user.birth_year if user.birth_year else None
     if avg_len < 21 or avg_len > 35:
         return True
     if len(lengths) >= 3 and regularity < 45:

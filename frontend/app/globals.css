@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --font-sans: "Vazirmatn", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Vazirmatn Variable", "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --color-glow-50: #fff1f5;
   --color-glow-100: #ffe1ec;
   --color-glow-200: #ffc5db;
@@ -58,18 +58,24 @@ body {
   font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.011em;
+  font-optical-sizing: auto;
+  /* Tracking is size-specific: body stays at 0, large headings tighten via .tracking-tight.
+     Persian script is never letter-spaced. */
+  letter-spacing: 0;
+  line-height: 1.55;
 }
 
-[dir="rtl"] body { letter-spacing: 0; }
+/* Persian glyphs are taller: looser leading; Latin text leads with Inter. */
+[dir="rtl"] body { line-height: 1.8; }
+html[lang="en"] body { font-family: "Inter Variable", var(--font-sans); }
 
 ::selection { background: var(--color-glow-400); color: #fff; }
 
 /* ---------- surfaces ---------- */
 .glass {
   background: rgb(var(--glass) / var(--glass-a));
-  backdrop-filter: blur(28px) saturate(1.6);
-  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  backdrop-filter: blur(18px) saturate(1.5);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5);
   border: 1px solid rgb(var(--line) / var(--line-a));
   box-shadow: var(--shadow);
 }
@@ -164,10 +170,73 @@ body {
   animation: shimmer 2.2s infinite;
 }
 
+/* ---------- cost control on phones (low-end Android is common) ---------- */
+@media (max-width: 1023px) {
+  .glass {
+    backdrop-filter: blur(12px) saturate(1.3);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  }
+  .aurora-blob { filter: blur(56px); }
+  .grain::before { display: none; }
+}
+
+/* ---------- eased light/dark switch instead of an abrupt brightness jump ---------- */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease,
+    box-shadow 0.4s ease, fill 0.4s ease, stroke 0.4s ease !important;
+}
+
+/* ---------- loading skeletons ---------- */
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  animation: shimmer 1.6s infinite;
+}
+.dark .skeleton::after { background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.08), transparent); }
+
+/* ---------- pause ambient motion when the tab is hidden ---------- */
+.tab-hidden .aurora-blob,
+.tab-hidden .pulse-glow { animation-play-state: paused; }
+
+/* ---------- accessibility preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
+  .aurora-blob, .pulse-glow { animation: none; }
+}
+
+/* frostier, solid surfaces: no blur, no ambient background */
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: rgb(var(--bg-elev));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .aurora-blob { opacity: 0.18; filter: none; }
+  .grain::before { display: none; }
+  header { backdrop-filter: none !important; background: var(--bg); }
+}
+
+/* stronger borders and near-solid surfaces */
+@media (prefers-contrast: more) {
+  :root { --line-a: 0.5; --fg-muted: #3f3144; }
+  .dark { --line-a: 0.65; --fg-muted: #dccbe3; }
+  .glass {
+    background: rgb(var(--bg-elev));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-width: 2px;
+  }
+  .aurora-blob { opacity: 0.12; }
+  .grain::before { display: none; }
 }

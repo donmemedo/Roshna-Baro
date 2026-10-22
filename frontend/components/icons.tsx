@@ -81,4 +81,24 @@ export const Icon = {
       <circle cx="20" cy="6.2" r="3.6" fill="url(#lg)" />
     </svg>
   ),
+  more: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={p.className || base}>
+      <circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" />
+    </svg>
+  ),
+  download: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={p.className || base}>
+      <path d="M12 3v12M7 11l5 5 5-5M4 20h16" />
+    </svg>
+  ),
+  trash: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={p.className || base}>
+      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6" />
+    </svg>
+  ),
+  logout: (p: P) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={p.className || base}>
+      <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 8l-4 4 4 4M6 12h10" />
+    </svg>
+  ),
 };

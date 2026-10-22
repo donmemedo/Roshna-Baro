@@ -3,25 +3,33 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { PageHeader } from "@/components/shell";
-import { useApp } from "@/components/providers";
-import { Card, Field, inputCls, softSpring } from "@/components/ui";
+import { useApp, useErrorText } from "@/components/providers";
+import { Card, Field, FormError, Skeleton, inputCls, softSpring } from "@/components/ui";
 import { api } from "@/lib/api";
+import { addDays, todayISO } from "@/lib/date";
 import { formatDate, localeNum } from "@/lib/i18n";
 
 type Timeline = Awaited<ReturnType<typeof api.pregnancy>>;
+// same boundaries as the API: 1-13, 14-27, 28-40
+const TRI = [[1, 13], [14, 27], [28, 40]] as const;
 
 export default function PregnancyPage() {
   const { t, locale } = useApp();
-  const [lastPeriod, setLastPeriod] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 84);
-    return d.toISOString().slice(0, 10);
-  });
+  const errorText = useErrorText();
+  const today = todayISO();
+  const [lastPeriod, setLastPeriod] = useState("");
   const [data, setData] = useState<Timeline | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.pregnancy(lastPeriod).then(setData).catch(() => {});
-  }, [lastPeriod]);
+    if (!lastPeriod) return;
+    let live = true;
+    setError("");
+    api.pregnancy(lastPeriod, todayISO())
+      .then((d) => live && setData(d))
+      .catch((e) => live && setError(errorText(e)));
+    return () => { live = false; };
+  }, [lastPeriod, errorText]);
 
   const c = data?.content as Record<string, string | number> | undefined;
   const progress = data ? Math.min(100, (data.week / 40) * 100) : 0;
@@ -33,10 +41,19 @@ export default function PregnancyPage() {
       <Card className="p-6">
         <div className="max-w-xs">
           <Field label={t("lastPeriod")}>
-            <input type="date" dir="ltr" className={inputCls} value={lastPeriod} onChange={(e) => setLastPeriod(e.target.value)} />
+            <input
+              type="date" dir="ltr" className={inputCls} value={lastPeriod}
+              min={addDays(today, -300)} max={today}
+              onChange={(e) => e.target.value && setLastPeriod(e.target.value)}
+            />
           </Field>
+          <p className="mt-1.5 text-xs muted">{t("dateRangeHint")}</p>
         </div>
+        <div className="mt-3"><FormError>{error}</FormError></div>
       </Card>
+
+      {!lastPeriod && <p className="mt-5 text-center text-sm muted">{t("pickDate")}</p>}
+      {lastPeriod && !data && !error && <Skeleton className="mt-5 h-48 rounded-4xl" />}
 
       {data && c && (
         <>
@@ -77,6 +94,7 @@ export default function PregnancyPage() {
                       {localeNum(Math.max(0, data.days_left), locale)} {t("daysLeft")}
                     </span>
                   </div>
+                  <p className="mt-3 text-[11px] muted">{t("disclaimer")}</p>
                 </div>
               </div>
             </div>
@@ -97,11 +115,11 @@ export default function PregnancyPage() {
                 <div className="h-2 overflow-hidden rounded-full bg-black/8 dark:bg-white/10">
                   <div
                     className="h-full rounded-full bg-[linear-gradient(90deg,var(--color-glow-400),var(--color-aurora-500))]"
-                    style={{ width: `${Math.max(0, Math.min(100, ((data.week - (tri - 1) * 13) / 13) * 100))}%` }}
+                    style={{ width: `${Math.max(0, Math.min(100, ((data.week - TRI[tri - 1][0] + 1) / (TRI[tri - 1][1] - TRI[tri - 1][0] + 1)) * 100))}%` }}
                   />
                 </div>
                 <p className="mt-2 text-[11px] muted">
-                  {localeNum((tri - 1) * 13 + 1, locale)}–{localeNum(tri === 3 ? 40 : tri * 13, locale)} {t("week")}
+                  {localeNum(TRI[tri - 1][0], locale)}–{localeNum(TRI[tri - 1][1], locale)} {t("week")}
                 </p>
               </Card>
             ))}

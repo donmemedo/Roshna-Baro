@@ -1,22 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Icon } from "@/components/icons";
 import { PageHeader } from "@/components/shell";
-import { useApp } from "@/components/providers";
-import { Card, Pill, softSpring } from "@/components/ui";
-import { api, type Clinic } from "@/lib/api";
+import { useApp, useErrorText } from "@/components/providers";
+import { Card, ErrorState, Pill, Skeleton, softSpring } from "@/components/ui";
+import { api } from "@/lib/api";
+import { useLoad } from "@/lib/hooks";
 import { localeNum } from "@/lib/i18n";
 
 const SERVICES = [["ivf", "svcIvf"], ["iui", "svcIui"], ["lab", "svcLab"], ["counseling", "svcCounseling"]] as const;
 
 export default function ClinicsPage() {
   const { t, locale } = useApp();
-  const [clinics, setClinics] = useState<Clinic[]>([]);
+  const errorText = useErrorText();
+  const { data, error, reload } = useLoad(() => api.clinics());
+  const clinics = useMemo(() => data ?? [], [data]);
   const [city, setCity] = useState<string>("");
   const [service, setService] = useState<string>("");
-
-  useEffect(() => { api.clinics().then(setClinics).catch(() => {}); }, []);
 
   const cities = useMemo(
     () => Array.from(new Set(clinics.map((c) => (locale === "fa" ? c.city_fa : c.city_en)))),
@@ -47,6 +48,13 @@ export default function ClinicsPage() {
           ))}
         </div>
       </div>
+
+      {!data && error != null && <ErrorState message={errorText(error)} retryLabel={t("retry")} onRetry={reload} />}
+      {!data && !error && (
+        <div role="status" aria-label={t("loading")} className="grid gap-4 md:grid-cols-2">
+          {[0, 1, 2, 3].map((i) => <Skeleton key={i} className="h-44 rounded-4xl" />)}
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         {filtered.map((c, i) => (

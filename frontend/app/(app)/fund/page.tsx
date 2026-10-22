@@ -3,28 +3,36 @@
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/icons";
 import { PageHeader } from "@/components/shell";
-import { useApp } from "@/components/providers";
-import { Button, Card, Pill, softSpring } from "@/components/ui";
+import { useApp, useErrorText } from "@/components/providers";
+import { Button, Card, ErrorState, FormError, Pill, Skeleton, softSpring } from "@/components/ui";
 import { api, type FundStats } from "@/lib/api";
+import { useLoad } from "@/lib/hooks";
 import { formatNum, localeNum } from "@/lib/i18n";
 
 const AMOUNTS = [150000, 300000, 500000, 1000000];
 
 export default function FundPage() {
   const { t, locale, refreshUser } = useApp();
-  const [fund, setFund] = useState<FundStats | null>(null);
+  const errorText = useErrorText();
+  const { data: fund, setData: setFund, error, reload } = useLoad(() => api.fund());
   const [amount, setAmount] = useState(300000);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
-    api.fund().then((f) => { setFund(f); setAmount(f.monthly_amount); }).catch(() => {});
-  }, []);
+    if (fund) setAmount(fund.monthly_amount);
+    // only when the server value first arrives; later edits belong to the user
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fund === null]);
 
   const act = async (fn: () => Promise<FundStats>) => {
     setBusy(true);
+    setActionError("");
     try {
       setFund(await fn());
       await refreshUser();
+    } catch (e) {
+      setActionError(errorText(e));
     } finally {
       setBusy(false);
     }
@@ -34,13 +42,20 @@ export default function FundPage() {
     <div className="mx-auto max-w-4xl">
       <PageHeader title={t("fundTitle")} body={t("fundBody")} />
 
+      {!fund && error != null && <ErrorState message={errorText(error)} retryLabel={t("retry")} onRetry={reload} />}
+      {!fund && !error && (
+        <div role="status" aria-label={t("loading")} className="grid gap-4 sm:grid-cols-3">
+          {[0, 1, 2].map((i) => <Skeleton key={i} className="h-28 rounded-4xl" />)}
+        </div>
+      )}
+
       {fund && (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* real figures only: member count, what members have pledged per month, partner clinics' average discount */}
+          <div className="grid gap-4 sm:grid-cols-3">
             {[
               { value: formatNum(fund.members, locale), label: t("fundMembers"), tone: "var(--color-glow-500)" },
-              { value: `${formatNum(Math.round(fund.pool_toman / 1_000_000), locale)}M`, label: `${t("fundPool")} (${t("toman")})`, tone: "var(--color-aurora-500)" },
-              { value: formatNum(fund.treatments_funded, locale), label: t("fundTreatments"), tone: "var(--color-mint-500)" },
+              { value: formatNum(fund.monthly_pledges_toman, locale), label: `${t("fundPool")} (${t("toman")})`, tone: "var(--color-aurora-500)" },
               { value: `${localeNum(fund.avg_discount, locale)}%`, label: t("fundDiscount"), tone: "var(--color-amber-glow)" },
             ].map((s, i) => (
               <Card key={s.label} className="p-6 text-center" transition={{ ...softSpring, delay: i * 0.05 }}>
@@ -80,6 +95,7 @@ export default function FundPage() {
               )}
             </div>
 
+            <div className="mt-4"><FormError>{actionError}</FormError></div>
             <p className="mt-6 border-t pt-5 text-xs muted">{t("fundLegal")}</p>
           </Card>
         </>

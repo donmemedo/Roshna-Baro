@@ -1,0 +1,42 @@
+PASS  health responds
+PASS  nosniff
+PASS  CSP frame-ancestors none
+PASS  Referrer-Policy no-referrer
+PASS  API responses not cacheable
+PASS  no server banner  [none]
+PASS  request id issued
+PASS  CORS: hostile origin refused
+PASS  /docs hidden
+PASS  /redoc hidden
+PASS  /openapi.json hidden
+PASS  demo account absent
+PASS  /api/auth/me needs auth
+PASS  /api/cycles needs auth
+PASS  /api/logs needs auth
+PASS  /api/insights needs auth
+PASS  /api/fund needs auth
+PASS  alg=none token refused
+PASS  weak password refused
+PASS  oversized body -> 413
+PASS  validation error does not echo input
+PASS  register works
+PASS  own profile readable
+PASS  mass assignment refused
+PASS  future/out-of-range date refused
+PASS  invalid fund amount refused
+PASS  SQL metacharacters rejected by enum
+PASS  pregnancy date not accepted via GET
+PASS  account deletion needs the right password
+PASS  guessing one account from many IPs is capped  [first 429 at attempt 31]
+PASS  per-IP login throttle  [first 429 at attempt 39]
+PASS  429 carries Retry-After
+PASS  web: login page served
+PASS  web: CSP uses a nonce + strict-dynamic
+PASS  web: no unsafe-inline/eval for scripts
+PASS  web: frame-ancestors none + X-Frame-Options
+PASS  web: no X-Powered-By
+PASS  web: no third-party hosts in page
+PASS  web: scripts carry the response nonce
+PASS  web: nonce differs per request
+PASS  web: service worker not cached by the browser
+{"passed": 41, "failed": []}

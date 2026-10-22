@@ -1,49 +1,61 @@
-from datetime import date, datetime
-from typing import Optional
+from datetime import UTC, date, datetime
 
+from sqlalchemy import Index
 from sqlmodel import Field, SQLModel
 
 
+def _now() -> datetime:
+    return datetime.now(UTC)
+
+
 class User(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    # AUTOINCREMENT: SQLite otherwise reuses the highest id after a delete, and a token minted for the
+    # deleted account would then unlock whoever registers next.
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id: int | None = Field(default=None, primary_key=True)
     email: str = Field(index=True, unique=True)
     hashed_password: str
     display_name: str = ""
-    birth_year: Optional[int] = None
+    birth_year: int | None = None
     avg_cycle_length: int = 28
     avg_period_length: int = 5
     goal: str = "conceive"  # conceive | track | pregnancy
     locale: str = "fa"
     is_premium: bool = False
     fund_member: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_now)
 
 
 class Cycle(SQLModel, table=True):
     """One menstrual cycle, identified by its period start date."""
 
-    id: Optional[int] = Field(default=None, primary_key=True)
+    __table_args__ = (Index("uq_cycle_user_start", "user_id", "period_start", unique=True),)
+
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(index=True, foreign_key="user.id")
     period_start: date
-    period_end: Optional[date] = None
+    period_end: date | None = None
     note: str = ""
 
 
 class DailyLog(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    __table_args__ = (Index("uq_dailylog_user_date", "user_id", "log_date", unique=True),)
+
+    id: int | None = Field(default=None, primary_key=True)
     user_id: int = Field(index=True, foreign_key="user.id")
     log_date: date = Field(index=True)
-    temperature: Optional[float] = None       # basal body temperature, C
-    opk_positive: Optional[bool] = None       # ovulation test
+    temperature: float | None = None       # basal body temperature, C
+    opk_positive: bool | None = None       # ovulation test
     intercourse: bool = False
-    mood: Optional[str] = None
-    flow: Optional[str] = None                # light | medium | heavy
+    mood: str | None = None
+    flow: str | None = None                # light | medium | heavy
     symptoms: str = ""                        # comma separated keys
     note: str = ""
 
 
 class Clinic(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     name_fa: str
     name_en: str
     city_fa: str
@@ -57,7 +69,7 @@ class Clinic(SQLModel, table=True):
 
 
 class Article(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     slug: str = Field(index=True, unique=True)
     category: str = "fertility"   # fertility | pregnancy | postpartum | mind
     title_fa: str
@@ -70,8 +82,10 @@ class Article(SQLModel, table=True):
 
 
 class FundMembership(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(index=True, foreign_key="user.id")
+    __table_args__ = (Index("uq_fund_user", "user_id", unique=True),)
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
     monthly_amount: int = 300000   # Toman
-    joined_at: datetime = Field(default_factory=datetime.utcnow)
+    joined_at: datetime = Field(default_factory=_now)
     active: bool = True
